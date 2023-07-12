@@ -5,11 +5,12 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
 
 from src.exception import CustomException
 from src.logger import logging
+from src.utils import utility
 
 @dataclass
 class DataTransformationConfig:
@@ -27,7 +28,8 @@ class DataTransformation:
             community_demand_columns = ['com1',	'com2',	'com3', 'com4', 'com5',	'com6']
             demand_pipeline = Pipeline(
                 steps = [
-                    'scaler', MinMaxScaler(feature_range=(-1, 1))
+                    ('scaler', MinMaxScaler(feature_range=(-1, 1))),
+                    ('timeseries_to_supervised', FunctionTransformer(utility.convert_to_supervised, kw_args={'columns':community_demand_columns}))
                     ]
             )
             logging.info(f'Community demand features:{community_demand_columns}')
@@ -58,17 +60,19 @@ class DataTransformation:
             input_feature_test_df = test_df[feature_columns]
                 
             logging.info(f"Applying preprocessing object on both train and test dataframes")
-            train_arr = preprocessing_obj.transform(input_feature_train_df)
-            test_arr = preprocessing_obj.transform(input_feature_test_df)
+            X_train_arr, y_train_arr = preprocessing_obj.transform(input_feature_train_df)
+            X_test_arr, y_test_arr = preprocessing_obj.transform(input_feature_test_df)
             
             logging.info('Saved preprocessing object')
-            save_object(
+            utility.save_object(
                 file_path= self.data_transformation_config.preprocessor_obj_file_path,
                 obj=preprocessing_obj)
             
             return (
-                train_arr,
-                test_arr,
+                X_train_arr,
+                y_train_arr,
+                X_test_arr,
+                y_test_arr,
                 self.data_transformation_config.preprocessor_obj_file_path,
             )
             
