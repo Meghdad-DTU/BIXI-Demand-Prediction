@@ -1,10 +1,12 @@
 import os
 import sys
-from src.exception import CustomException
-from src.logger import logging
+
+from exception import CustomException
+from logger import logging
+
 import pandas as pd
 from dataclasses import dataclass
-from src.components.data_transformation import DataTransformation, DataTransformationConfig
+from data_transformation import DataTransformation, DataTransformationConfig
 
 @dataclass
 class DataIngestionConfig:
@@ -44,7 +46,7 @@ class DataIngestion():
             raise CustomException(e, sys)
 
 if __name__ == '__main__':
-    obj= DataIngestion(0.8)
+    obj=DataIngestion(0.8)
     train_data, test_data =obj.initiate_data_ingestion()
     
     data_transformation = DataTransformation()

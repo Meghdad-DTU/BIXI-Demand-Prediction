@@ -6,7 +6,10 @@ import pickle
 from src.exception import CustomException
 
 
-class utility:
+class utility():
+    def __init__(self):
+        pass
+    
     def save_object(self, file_path, obj):
         try:
             dir_path = os.path.dirname(file_path)
@@ -43,7 +46,7 @@ class utility:
         except Exception as e:
             raise CustomException(e, sys)
     
-    def convert_to_supervised(self, df, lag):
+    def convert_to_supervised(self, dat, lag):
         '''
         This function takes a 2D sequennce, scales the array and splits
         a given multivariate sequence into multiple samples where each sample has a specified number
@@ -51,8 +54,13 @@ class utility:
         param df (DataFrame): Bike sharing demand for each community over time
         param lag (int): History length or time lag
         '''
-        dat = df.values
+        
         try:
+            if isinstance(dat, np.ndarray):
+                pass
+            else:
+                dat = dat.values
+            
             m, n = dat.shape
             # e.g., if lag = 7, BIXI demand of past 7*15 minutes
             X = np.zeros((m-lag,lag, n))
