@@ -1,5 +1,6 @@
 import sys
-from src.logger import logging
+sys.path.append("BIXI-Demand-Prediction/src")
+from logger import logging
 
 def error_message_detail(error, error_details:sys):
     _ ,_ ,ext_tb = error_details.exc_info()

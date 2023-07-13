@@ -1,6 +1,7 @@
 import os
 import sys
 
+sys.path.append("BIXI-Demand-Prediction/src")
 from exception import CustomException
 from logger import logging
 

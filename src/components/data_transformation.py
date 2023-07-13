@@ -2,6 +2,7 @@ import os
 import sys
 from dataclasses import dataclass
 
+sys.path.append("BIXI-Demand-Prediction/src")
 from exception import CustomException
 from logger import logging
 from utils import utility
@@ -21,7 +22,7 @@ class DataTransformationConfig:
 class DataTransformation:
     def __init__(self):
         self.data_transformation_config=DataTransformationConfig()
-        self.utility = utility()
+        self.utility = utility
         
     def get_data_transformer_object(self):
         '''

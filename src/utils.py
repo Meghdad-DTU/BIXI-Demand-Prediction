@@ -3,14 +3,13 @@ import sys
 import numpy as np
 import pandas as pd
 import pickle
-from src.exception import CustomException
+sys.path.append("BIXI-Demand-Prediction/src")
+from exception import CustomException
 
 
-class utility():
-    def __init__(self):
-        pass
+class utility:
     
-    def save_object(self, file_path, obj):
+    def save_object(file_path, obj):
         try:
             dir_path = os.path.dirname(file_path)
             os.makedirs(dir_path, exist_ok=True)
@@ -22,7 +21,7 @@ class utility():
             raise CustomException(e, sys)
         
         
-    def split_sequence(self, sequence, lag):
+    def split_sequence(sequence, lag):
         '''
         This function splits a given univariate sequence into
         multiple samples where each sample has a specified number
@@ -46,7 +45,7 @@ class utility():
         except Exception as e:
             raise CustomException(e, sys)
     
-    def convert_to_supervised(self, dat, lag):
+    def convert_to_supervised(dat, lag):
         '''
         This function takes a 2D sequennce, scales the array and splits
         a given multivariate sequence into multiple samples where each sample has a specified number
@@ -67,7 +66,7 @@ class utility():
             Y = np.zeros((m-lag,n))
 
             for i in range(0,n):
-                x, y = self.split_sequence(dat[:,i],lag)
+                x, y = utility.split_sequence(dat[:,i],lag)
                 X[:,:,i] = x
                 Y[:,i] = y
             return X, Y
