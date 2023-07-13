@@ -7,7 +7,8 @@ from logger import logging
 
 import pandas as pd
 from dataclasses import dataclass
-from data_transformation import DataTransformation, DataTransformationConfig
+from data_transformation import DataTransformation
+
 
 @dataclass
 class DataIngestionConfig:
