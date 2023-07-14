@@ -14,7 +14,6 @@ from numpy.random import seed
 import itertools
 #######################################################################
 from keras.models import Sequential, Model
-from keras.utils import np_utils
 from keras.layers import Input, Dense, LSTM, Bidirectional, Conv1D, MaxPooling1D, Dropout, Flatten, BatchNormalization, concatenate, TimeDistributed
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 
