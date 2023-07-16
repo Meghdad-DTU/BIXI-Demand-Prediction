@@ -2,7 +2,7 @@ import os
 import sys
 from dataclasses import dataclass
 
-sys.path.append("BIXI-Demand-Prediction/src")
+sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src")
 from exception import CustomException
 from logger import logging
 from utils import utility
