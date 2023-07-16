@@ -40,19 +40,19 @@ class ModelTrainer:
             logging.info("Creating payloads for models")
             models = {"LSTM":{'Model':utility.one_LSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 1, 'patience' : 10, 'filters': None}, 
+                                 'epoch' : 400, 'patience' : 10, 'filters': None}, 
                                  
                       "bi_LSTM":{ 'Model':utility.one_biLSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 1, 'patience' : 10, 'filters': None},
+                                 'epoch' : 400, 'patience' : 10, 'filters': None},
                                  
                        "TreNet_LSTM": {'Model':utility.TreNet_LSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 1, 'patience' : 10, 'filters': 128},
+                                 'epoch' : 400, 'patience' : 10, 'filters': 128},
                                  
                        "TreNet_biLSTM": {'Model':utility.TreNet_biLSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 1, 'patience' : 10, 'filters': 128}
+                                 'epoch' : 400, 'patience' : 10, 'filters': 128}
                      }
             
             logging.info("Initializing deep learning models")           
