@@ -8,7 +8,6 @@ from numpy.random import seed
 import itertools
 #######################################################################
 from keras.models import Sequential, Model
-from keras.utils import np_utils
 from keras.layers import Input, Dense, LSTM, Bidirectional, Conv1D, MaxPooling1D, Dropout, Flatten, BatchNormalization, concatenate, TimeDistributed
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 #######################################################################
@@ -17,7 +16,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 ##########################################################################
 import tensorflow as tf
 
-sys.path.append("BIXI-Demand-Prediction/src")
+sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src")
 from exception import CustomException
 from logger import logging
 from utils import utility, RunningDeepLearningModel
@@ -32,7 +31,7 @@ class ModelTrainer:
     def __init__(self):
         self.model_trainer_config=ModelTrainerConfig()
     
-    def initiate_model(self, X_train_arr, y_train_arr, X_test_arr, y_test_arr, preprocessor_path):
+    def initiate_model(self, X_train_arr, y_train_arr, X_test_arr, y_test_arr):
         try:
             logging.info("Split training and test input data")
             X_train, y_train = X_train_arr, y_train_arr
@@ -41,34 +40,35 @@ class ModelTrainer:
             logging.info("Creating payloads for models")
             models = {"LSTM":{'Model':utility.one_LSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 400, 'patience' : 10, 'filters': None}, 
+                                 'epoch' : 1, 'patience' : 10, 'filters': None}, 
                                  
                       "bi_LSTM":{ 'Model':utility.one_biLSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 400, 'patience' : 10, 'filters': None},
+                                 'epoch' : 1, 'patience' : 10, 'filters': None},
                                  
                        "TreNet_LSTM": {'Model':utility.TreNet_LSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 400, 'patience' : 10, 'filters': 128},
+                                 'epoch' : 1, 'patience' : 10, 'filters': 128},
                                  
                        "TreNet_biLSTM": {'Model':utility.TreNet_biLSTM,'lag':96,'lstm_size':50,
                                  'dropout':0.4,'dc_size': 64,'batch_size': 256,
-                                 'epoch' : 400, 'patience' : 10, 'filters': 128}
+                                 'epoch' : 1, 'patience' : 10, 'filters': 128}
                      }
             
-            logging.info("Initializing deep learning models")         
-            model_obj = RunningDeepLearningModel(X_train, y_train, X_test, y_test)
+            logging.info("Initializing deep learning models")           
             rmse = 1000
             for k,v in models.items():
+                model_obj = RunningDeepLearningModel(X_train, y_train, X_test, y_test)
                 payload = models[k]
-                model_obj.load_input(**payload)
-                model, results = model_obj.model_performance()
+                model_name, model, results = model_obj.model_performance(**payload)
+
                 if results['test_performance']['rmse'] < rmse:
                     best_model = model
+                    name_best_model = model_name
                     report = results
                     rmse = results['test_performance']['rmse']
             
-            logging.info(f"Best model found on testing data: {best_model.__name__}")        
+            logging.info(f"Best model found on testing data: {name_best_model}")        
                 
             utility.save_object(
                 file_path=self.model_trainer_config.trained_model_file_path,

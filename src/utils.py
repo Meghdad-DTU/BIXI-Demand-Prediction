@@ -121,7 +121,7 @@ class utility:
                     n //= i
                     prime_factor_list.append(i)
             return prime_factor_list
-
+        
         lst = prime_factors(n)
         lng = len(lst)
         half= int(np.round(lng/2+1))
@@ -159,7 +159,7 @@ class utility:
     
     ## CNN-LSTM family
     def TreNet_LSTM(n_steps_in, n_features, n_steps_out, filters, lstm_size, dropout, dc_size):
-        n_steps, n_seq =  integer_factor(n_steps_in)
+        n_steps, n_seq =  utility.integer_factor(n_steps_in)
         model = Sequential()
         model.add(TimeDistributed(Conv1D(filters=filters, kernel_size=1),
                           input_shape=(None, n_steps, n_features)))
@@ -173,7 +173,7 @@ class utility:
         return model
 
     def TreNet_biLSTM(n_steps_in, n_features, n_steps_out, filters, lstm_size, dropout, dc_size):
-        n_steps, n_seq =  integer_factor(n_steps_in)
+        n_steps, n_seq =  utility.integer_factor(n_steps_in)
         model = Sequential()
         model.add(TimeDistributed(Conv1D(filters=filters, kernel_size=1),
                           input_shape=(None, n_steps, n_features)))
@@ -245,77 +245,76 @@ class utility:
         return overal_mae, MAEs, overal_rmse, RMSEs
         
     ############################### Running Models #######################################    
-    class RunningDeepLearningModel:
-        def __init__(self, X_train, y_train, X_test, y_test, train_val_ratio=0.8):
-            self.X_train = X_train
-            self.y_train = y_train
-            self.X_test = X_test           
-            self.train_val_ratio = train_val_ratio
-    
-    
-        def load_input(Model, lag, lstm_size, dropout, dc_size, batch_size, epoch, patience, filters, **kwargs):
-            self.epoch = epoch
-            self.batch_size = batch_size
+class RunningDeepLearningModel:
+    def __init__(self, X_train, y_train, X_test, y_test, train_val_ratio=0.8):
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test 
+        self.y_test = y_test          
+        self.train_val_ratio = train_val_ratio
         
-            try:
-                if Model.__name__ in ['TreNet_LSTM', 'TreNet_biLSTM']:
-                    CNN = True
-                    assert filters is not None, 'WARNING: Provide number of filters in payload!'
-                elif Model.__name__ in ['one_LSTM', 'one_biLSTM']:
-                    CNN = False
-                    assert filters is None, 'WARNING: Change filters to None in payload!'
-                else:
-                    return ('Warning: The model does not exist!')
+    
+    
+    def model_performance(self, Model, lag, lstm_size, dropout, dc_size, batch_size, epoch, patience, filters, **kwargs):
+        self.epoch = epoch
+        self.batch_size = batch_size
+        
+        try:
+            if Model.__name__ in ['TreNet_LSTM', 'TreNet_biLSTM']:
+                CNN = True
+                assert filters is not None, 'WARNING: Provide number of filters in payload!'
+            elif Model.__name__ in ['one_LSTM', 'one_biLSTM']:
+                CNN = False
+                assert filters is None, 'WARNING: Change filters to None in payload!'
+            else:
+                return ('Warning: The model does not exist!')
 
-                n_features, n_steps_out, n_steps_in = self.X_train.shape[2], self.X_train.shape[2],  = self.X_train.shape[1]
-            
-                if CNN:
-                    assert filters is not None, 'WARNING: Number of filters must be provided!'
-                    n_steps, n_seq =  utility.integer_factor(n_steps_in)
-                    # reshape from [samples, timesteps, features] into [samples, subsequences, timesteps, features]
-                    self.X_train = self.X_train.reshape((self.X_train.shape[0], n_seq, n_steps, n_features))
-                    model = Model(n_steps_in, n_features, n_steps_out, filters, lstm_size, dropout, dc_size)
+            n_features, n_steps_out, n_steps_in = self.X_train.shape[2], self.X_train.shape[2], self.X_train.shape[1]
+           
+            if CNN:
+                assert filters is not None, 'WARNING: Number of filters must be provided!'
+                n_steps, n_seq =  utility.integer_factor(n_steps_in)
+               
+                # reshape from [samples, timesteps, features] into [samples, subsequences, timesteps, features]
+                self.X_train = self.X_train.reshape((self.X_train.shape[0], n_seq, n_steps, n_features))
+                self.X_test = self.X_test.reshape((self.X_test.shape[0], n_seq, n_steps, n_features))
+                
+                model = Model(n_steps_in, n_features, n_steps_out, filters, lstm_size, dropout, dc_size)
 
-                else:
-                    model = Model(n_steps_in, n_features, n_steps_out, lstm_size, dropout, dc_size)
+            else:
+                model = Model(n_steps_in, n_features, n_steps_out, lstm_size, dropout, dc_size)
         
-                model.summary()
-                self.model = model
-        
-            except Exception as e:
-                raise CustomException(e, sys)
-    
-        def model_performance(self):
-            try:
-                results=dict()
-                train_set, test_set = dict(), dict()
-            
-                history = model.fit(
+            model.summary()            
+            history = model.fit(
                 self.X_train,
                 self.y_train,
-                epochs=self.epoch,
-                batch_size=self.batch_size,
+                epochs=epoch,
+                batch_size=batch_size,
                 verbose=2,
                 validation_split=self.train_val_ratio,
-                callbacks=[EarlyStopping(monitor='val_loss', patience=patience)])
-
-                utility.model_loss(history)
-
-                ## Forcasting test and training data
-                y_hat_test  = self.model.predict(self.X_test)
-                y_hat_train  = self.model.predict(self.X_train)
-
-                mae_test, MAEs_test, rmse_test, RMSEs_test = utility.evaluate_forecasts(self.y_test, y_hat_test, "Test")
-                mae_train, MAEs_train, rmse_train, RMSEs_train = utility.evaluate_forecasts(self.y_train, y_hat_train, "Train")
+                callbacks=[EarlyStopping(monitor='val_loss', patience=patience)]
+                )
             
-                train_set['mae'], train_set['MAEs'], train_set['rmse'], train_set['RMSEs'] = mae_train, MAEs_train, rmse_train, RMSEs_train
-                test_set['mae'], test_set['MAEs'], test_set['rmse'], test_set['RMSEs'] = mae_train, MAEs_train, rmse_train, RMSEs_train 
-                results['train_performance'], results['train_performance'] = train_set, test_set
+            results=dict()
+            train_set, test_set = dict(), dict()
+            utility.model_loss(history)
+
+            ## Forcasting test and training data
+            y_hat_test  = model.predict(self.X_test)
+            y_hat_train  = model.predict(self.X_train)
+
+            mae_test, MAEs_test, rmse_test, RMSEs_test = utility.evaluate_forecasts(self.y_test, y_hat_test, "Test")
+            mae_train, MAEs_train, rmse_train, RMSEs_train = utility.evaluate_forecasts(self.y_train, y_hat_train, "Train")
             
-                return self.model, results
-            
-            except Exception as e:
-                CustomException(e, sys)
+            train_set['mae'], train_set['MAEs'], train_set['rmse'], train_set['RMSEs'] = mae_train, MAEs_train, rmse_train, RMSEs_train
+            test_set['mae'], test_set['MAEs'], test_set['rmse'], test_set['RMSEs'] = mae_train, MAEs_train, rmse_train, RMSEs_train 
+            results['train_performance'], results['test_performance'] = train_set, test_set
+
+            return Model.__name__, model, results
+        
+        except Exception as e:
+            raise CustomException(e, sys)   
+  
             
             
 

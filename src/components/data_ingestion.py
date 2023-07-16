@@ -1,13 +1,14 @@
 import os
 import sys
 
-sys.path.append("BIXI-Demand-Prediction/src")
+sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src")
 from exception import CustomException
 from logger import logging
 
 import pandas as pd
 from dataclasses import dataclass
 from data_transformation import DataTransformation
+from model_trainer import ModelTrainer
 
 
 @dataclass
@@ -51,7 +52,10 @@ if __name__ == '__main__':
     obj=DataIngestion(0.8)
     train_data, test_data =obj.initiate_data_ingestion()
     
-    data_transformation = DataTransformation()
-    data_transformation.initiate_data_transformatio(train_data, test_data)
+    data_transformation = DataTransformation()   
+    X_train_arr, y_train_arr, X_test_arr, y_test_arr,_ = data_transformation.initiate_data_transformatio(train_data, test_data)   
+    model_trainer = ModelTrainer()
+    model_trainer.initiate_model(X_train_arr, y_train_arr, X_test_arr, y_test_arr)
+
     
             
