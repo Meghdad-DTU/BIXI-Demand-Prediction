@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
-sys.path.append("BIXI-Demand-Prediction/src")
-from exception import CustomException
+#sys.path.append("BIXI-Demand-Prediction/src")
+from src.exception import CustomException
 
 
 #######################################################################
@@ -22,7 +22,7 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 ##########################################################################
 import tensorflow as tf
-from keras.models import save_model
+from keras.models import save_model, load_model
 
 
 class utility:
@@ -40,28 +40,53 @@ class utility:
     
         except Exception as e:
             raise CustomException(e, sys)
+
+    def load_object(file_path, h5=False):
+        try:
+            if h5:
+                return load_model(file_path)
+            else:
+                with open(file_path, 'rb') as file_obj:
+                    return pickle.load(file_obj)
         
+        except Exception as e:
+            raise CustomException(e, sys)
+
         
-    def split_sequence(sequence, lag):
+    def split_sequence(sequence, lag, new_input=False):
         '''
         This function splits a given univariate sequence into
         multiple samples where each sample has a specified number
         of time steps and the output is a single time step.
+        param new_input: If True it is used for predicting new input
         '''
         try:
-            X, y = list(), list()
-            for i in range(len(sequence)):
-            # find the end of this pattern
-                end_ix = i + lag
-
-            # check if we are beyond the sequence
-                if end_ix > len(sequence)-1:
-                    break
-            # gather input and output parts of the pattern
-                seq_x, seq_y = sequence[i:end_ix], sequence[end_ix]
-                X.append(seq_x)
-                y.append(seq_y)
-            return np.array(X), np.array(y)
+            if new_input:
+                X = list()
+                for i in range(len(sequence)):
+                    # find the end of this pattern
+                    end_ix = i + history_length
+                    # check if we are beyond the sequence
+                    if end_ix > len(sequence):
+                        break
+                    # gather input and output parts of the pattern
+                    seq_x = sequence[i:end_ix]
+                    X.append(seq_x)
+                return np.array(X)
+                
+            else:
+                X, y = list(), list()
+                for i in range(len(sequence)):
+                    # find the end of this pattern
+                    end_ix = i + lag
+                    # check if we are beyond the sequence               
+                    if end_ix > len(sequence)-1:
+                        break
+                # gather input and output parts of the pattern
+                    seq_x, seq_y = sequence[i:end_ix], sequence[end_ix]
+                    X.append(seq_x)
+                    y.append(seq_y)
+                return np.array(X), np.array(y)
     
         except Exception as e:
             raise CustomException(e, sys)
@@ -87,13 +112,22 @@ class utility:
             Y = np.zeros((m-lag,n))
 
             for i in range(0,n):
-                x, y = utility.split_sequence(dat[:,i],lag)
+                x, y = utility.split_sequence(dat[:,i], lag)
                 X[:,:,i] = x
                 Y[:,i] = y
             return X, Y
     
         except Exception as e:
             raise CustomException(e, sys)
+        
+    def convert_to_CNN_input(X, n_seq, n_steps):
+        try:
+            m, _, n = X.shape            
+            return X.reshape((m, n_seq, n_steps, n))
+        
+        except Exception as e:
+            raise CustomException(e, sys)
+
             
     def integer_factor(n):
         """ This function calculates integer factorization of n
@@ -128,8 +162,7 @@ class utility:
         list1, list2 = lst[0:half], lst[half:]
         n_steps, n_sequence = np.prod(list1), np.prod(list2)
         return n_steps, n_sequence
-    
-    
+
     ######################### Deep Learning Models Archituctures ############################
     # LSTM family
     def one_LSTM(n_steps_in, n_features, n_steps_out, lstm_size, dropout, dc_size):
@@ -255,7 +288,7 @@ class RunningDeepLearningModel:
         
     
     
-    def model_performance(self, Model, lag, lstm_size, dropout, dc_size, batch_size, epoch, patience, filters, **kwargs):
+    def model_performance(self, Model, lstm_size, dropout, dc_size, batch_size, epoch, patience, filters, **kwargs):
         self.epoch = epoch
         self.batch_size = batch_size
         
@@ -279,9 +312,11 @@ class RunningDeepLearningModel:
                 self.X_train = self.X_train.reshape((self.X_train.shape[0], n_seq, n_steps, n_features))
                 self.X_test = self.X_test.reshape((self.X_test.shape[0], n_seq, n_steps, n_features))
                 
+                input_size = {'n_seq':n_seq, 'n_steps':n_steps}
                 model = Model(n_steps_in, n_features, n_steps_out, filters, lstm_size, dropout, dc_size)
 
             else:
+                input_size = {'n_seq':None, 'n_steps':None}
                 model = Model(n_steps_in, n_features, n_steps_out, lstm_size, dropout, dc_size)
         
             model.summary()            
@@ -310,7 +345,7 @@ class RunningDeepLearningModel:
             test_set['mae'], test_set['MAEs'], test_set['rmse'], test_set['RMSEs'] = mae_train, MAEs_train, rmse_train, RMSEs_train 
             results['train_performance'], results['test_performance'] = train_set, test_set
 
-            return Model.__name__, model, results
+            return Model.__name__, model, results, input_size
         
         except Exception as e:
             raise CustomException(e, sys)   

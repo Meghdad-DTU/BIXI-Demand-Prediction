@@ -1,6 +1,6 @@
 import sys
-sys.path.append("BIXI-Demand-Prediction/src")
-from logger import logging
+#sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src/")
+from src.logger import logging
 
 def error_message_detail(error, error_details:sys):
     _ ,_ ,ext_tb = error_details.exc_info()
