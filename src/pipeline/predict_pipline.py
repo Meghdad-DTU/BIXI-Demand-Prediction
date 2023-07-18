@@ -1,5 +1,7 @@
+import os
 import sys
 import pandas as pd
+
 sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src/")
 from exception import CustomException
 from utils import utility
@@ -10,10 +12,10 @@ class PredictionPipeline:
         pass
     
     def predict(self, features):
-        try:
-            model_path = 'artifacts/Trenet_LSTM.h5'
-            preprocessor_path= 'artifacts/preprocessor.pkl'
-            input_size_path= 'artifacts/model_input_size.pkl'
+        try:            
+            model_path = os.path.join('artifacts','Trenet_LSTM.h5')
+            preprocessor_path= os.path.join('artifacts', 'preprocessor.pkl')
+            input_size_path= os.path.join('artifacts', 'model_input_size.pkl')
         
             
             preprocessor = utility.load_object(file_path = preprocessor_path)

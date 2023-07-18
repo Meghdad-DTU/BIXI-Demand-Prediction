@@ -1,5 +1,5 @@
 import sys
-from flask import Flask, request, render_template, jsonify, url_for
+from flask import Flask, request, render_template, jsonify
 import numpy as np
 import pandas as pd
 
@@ -29,7 +29,8 @@ def predict_api():
         )
 
         df=data.get_data_as_data_frame()
-        assert len(df)>96, 'Warning: Number of timstamps must be greater than 96'
+        if len(df)<97:
+            return 'WARNING: Number of timstamps must be greater than predefined time lag!'
         
         prediction_pipeline = PredictionPipeline()
         results = prediction_pipeline.predict(df)
