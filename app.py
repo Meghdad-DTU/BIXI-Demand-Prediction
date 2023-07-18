@@ -29,11 +29,12 @@ def predict_api():
         )
 
         df=data.get_data_as_data_frame()
-        print(df)
-
+        assert len(df)>96, 'Warning: Number of timstamps must be greater than 96'
+        
         prediction_pipeline = PredictionPipeline()
         results = prediction_pipeline.predict(df)
-        return jsonify(results[0])        
+        # If you try to serialize a NumPy array to JSON in Python, you'll get error.
+        return jsonify(results.tolist())        
 
 if __name__ == '__main__':
     app.run(debug=True)

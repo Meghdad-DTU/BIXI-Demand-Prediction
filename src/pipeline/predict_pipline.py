@@ -3,7 +3,7 @@ import pandas as pd
 sys.path.append("/home/paladin/Downloads/BIXI-Demand-Prediction/src/")
 from exception import CustomException
 from utils import utility
-from keras.models import save_model, load_model
+
 
 class PredictionPipeline:
     def __init__(self):
@@ -21,13 +21,11 @@ class PredictionPipeline:
             n_seq, n_steps = input_size['n_seq'], input_size['n_steps']
             
             model = utility.load_object(file_path = model_path, h5=True)
-            model.summary()
-            
-            
-        
+                   
             data_scaled, _ = preprocessor.transform(features)
             data_scaled = utility.convert_to_CNN_input(data_scaled, n_seq=n_seq, n_steps= n_steps)
-            preds = model.predict(data_scaled)
+            preds = preprocessor.inverse_transform(model.predict(data_scaled))
+            
             return preds
         
         except Exception as e:

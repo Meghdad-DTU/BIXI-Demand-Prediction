@@ -44,7 +44,7 @@ class utility:
     def load_object(file_path, h5=False):
         try:
             if h5:
-                return load_model(file_path)
+                return load_model(file_path, compile=False)
             else:
                 with open(file_path, 'rb') as file_obj:
                     return pickle.load(file_obj)
